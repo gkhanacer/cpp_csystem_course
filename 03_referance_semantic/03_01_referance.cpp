@@ -15,6 +15,7 @@ int main(int argc, char const *argv[])
     int* const p = &x; 
     cout << (*p) << endl;
 
+    // Bir referans ilk hangi nesneyi alıyorsa yaşamı boyunca başka bir nesneye bağlanamaz
     // &: declarator
     int& r = x; // Yukarıdakiyle aynı özellikte. Assembly bile aynı.
     cout << r << endl;

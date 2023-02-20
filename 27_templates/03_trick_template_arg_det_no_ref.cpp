@@ -1,3 +1,5 @@
+
+// Write a uncomplete class  and create an instance from another class template
 template <typename T>
 class TypeTeller;
 
@@ -15,7 +17,7 @@ int foo(int x)
 int main(int argc, char const *argv[])
 {
     // Doğrudan türün kendisini alır
-    // func(10); // T: int 
+    func(10); // T: int 
 
     // const'luk düşer! T: int
     // const int x = 10; 
@@ -34,7 +36,7 @@ int main(int argc, char const *argv[])
     // func(foo); // T: int(*)(int)
 
     // string literal
-    func("ali"); // T: const char*
+    // func("ali"); // T: const char*
     
     return 0;
 }

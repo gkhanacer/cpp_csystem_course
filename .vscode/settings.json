@@ -60,6 +60,13 @@
         "ratio": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "syncstream": "cpp",
+        "future": "cpp",
+        "chrono": "cpp",
+        "map": "cpp",
+        "iomanip": "cpp"
     }
 }

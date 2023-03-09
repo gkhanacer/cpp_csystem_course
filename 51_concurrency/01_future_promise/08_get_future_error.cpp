@@ -1,4 +1,4 @@
-#include <future>
+    #include <future>
 #include <iostream>
 
 // promise & future ise ONE TIME COMM. CHANNER
@@ -6,17 +6,19 @@
 int main(int argc, char const *argv[])
 {
     std::promise<int> prom;
-    prom.set_value(10);
+    auto ftr = prom.get_future();
 
+
+    prom.set_value(10);
+    std::cout << "val = " << ftr.get() << "\n";
     try
     {
-        prom.set_value(1);
+        auto val = ftr.get();
     }
     catch(const std::future_error& e)
     {
         std::cerr << e.what() << '\n';
     }
     
-
     return 0;
 }

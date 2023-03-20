@@ -25,7 +25,7 @@ void consumer()
     {
         ulock.unlock(); // processor is working resource!!
         std::this_thread::yield();
-        std::this_thread::sleep_for(100ms); // Is 100ms enought? Maybe it will be sleep more? or 100 can be shorter? we dont know! NOT OPTIMIE
+        std::this_thread::sleep_for(100ms); // Is 100ms enought? Maybe it will be sleep more? or 100 can be shorter? we dont know! NOT OPTIM
         ulock.lock();
     }
 

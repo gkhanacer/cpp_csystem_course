@@ -24,6 +24,6 @@ void print(T list)
 int main(int argc, char const *argv[])
 {   
     // Insert
-
+    
     return 0;
 }

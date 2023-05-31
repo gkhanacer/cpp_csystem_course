@@ -3,17 +3,53 @@
 
 #include <random>
 #include <string>
-#include <ostream>
+#include <iostream>
+#include <set>
 #include <forward_list>
-#include <algorithm>
-#include <ctime>
 
-[[nodiscard]] constexpr int ndigit(int val)
+
+class Irand {
+public:
+	Irand() = default;
+	Irand(int min, int max) : m_dist{ min, max } {}
+	int operator()();
+private:
+	std::uniform_int_distribution<int> m_dist;
+};
+
+
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+
+class Drand {
+public:
+	Drand() = default;
+	Drand(double dmin, double dmax) : m_dist{ dmin, dmax } {}
+	double operator()();
+private:
+	std::uniform_real_distribution<double> m_dist;
+};
+
+
+void		randomize();
+[[nodiscard]] std::string rname();
+[[nodiscard]] std::string rfname();
+[[nodiscard]] std::string rtown();
+[[nodiscard]] std::string rperson();
+
+[[nodiscard]] 
+bool isprime(int val);
+
+std::ostream& dline(std::ostream& os);
+//--------------------------------------------------
+//--------------------------------------------------
+constexpr int ndigit(int val)
 {
 	if (val == 0)
 		return 1;
 
-	int digit_count{};
+	int digit_count = 0;
+
 	while (val != 0) {
 		val /= 10;
 		++digit_count;
@@ -22,67 +58,111 @@
 	return digit_count;
 }
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 
-template <typename T>
-[[nodiscard]] constexpr bool isprime(T val)
+template<typename T, typename U>
+std::ostream& operator<<(std::ostream& os, const std::pair<T, U>& p)
 {
-	if (val < 2)
-		return false;
-
-	if (val % 2 == 0)
-		return val == 2;
-
-	if (val % 3 == 0)
-		return val == 3;
-
-	if (val % 5 == 0)
-		return val == 5;
-
-	for (int k = 7; k * k <= val; k += 2)
-		if (val % k == 0)
-			return false;
-
-	return true;
+	return os << "[" << p.first << ", " << p.second << "]";
+}
+//--------------------------------------------------
+//--------------------------------------------------
+template<typename C, typename F>
+void rfill(C& c, size_t n, F frand)
+{
+	while (c.size() < n)
+		c.insert(c.end(), frand());
 }
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------
+//--------------------------------------------------
 
-[[nodiscard]] inline std::ranlux48_base& urng()
+template<typename T, typename F>
+void rfill(std::forward_list<T>& c, size_t n, F frand)
 {
-	static std::ranlux48_base eng{ std::random_device{}() };
+	while (n--)
+		c.insert_after(c.before_begin(), frand());
+}
 
-	return eng;
-};
 
-////////////////////////////////////////////////////////////
+template<typename C>
+void print(const C& c, const char* p = " ", std::ostream& os = std::cout)
+{
+	for (const auto& elem : c)
+		os << elem << p;
+	os << dline;
+}
+//--------------------------------------------------
+//--------------------------------------------------
 
-template<typename T>
-class Rand {
-public:
-	Rand() = default;
-	Rand(T min, T max) : m_dist{ min, max } {}
-	auto operator()()
-	{
-		return m_dist(urng());
+template<typename InIter>
+void print(InIter beg, InIter end, const char* p = " ", std::ostream& os = std::cout)
+{
+	while (beg != end) {
+		os << *beg++ << p;
 	}
-private:
-	std::uniform_int_distribution<T> m_dist;
-};
+	os << dline;
+}
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------
+//--------------------------------------------------
 
-inline void randomize()
+template<typename C, typename F>
+void fcs(C& c, size_t n, F func)
+{
+	std::set<typename C::value_type> s;
+	while (s.size() != n)
+		s.insert(func());
+	c.assign(s.begin(), s.end());
+}
+//--------------------------------------------------
+//--------------------------------------------------
+
+void my_terminate();
+
+#include "nutility.h"
+#include <sstream>
+#include <iomanip>
+#include <ctime>
+#include <cstdlib>
+#include <fstream>
+
+
+void randomize()
 {
 	std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 
-[[nodiscard]] inline std::string rname()
+namespace {
+	std::mt19937& urng()
+	{
+		static std::mt19937 eng{ std::random_device{}() };
+
+		return eng;
+	};
+}
+//--------------------------------------------------
+//--------------------------------------------------
+int Irand::operator()()
 {
-	static const char* const pnames[] = {
-"abdi", "abdullah", "abdulmuttalip", "adem", "adnan", "afacan", "agah", "ahmet", "akin", "alev",
+	return m_dist(urng());
+}
+//--------------------------------------------------
+//--------------------------------------------------
+double Drand::operator()()
+{
+	return m_dist(urng());
+}
+//--------------------------------------------------
+//--------------------------------------------------
+std::string rname()
+{
+	const char* const pnames[] = {
+		"abdi", "abdullah", "abdulmuttalip", "adem", "adnan", "afacan", "agah", "ahmet", "akin", "alev",
 "ali", "alican", "alparslan", "anil", "arda", "asim", "askin", "aslican", "aslihan", "ata",
 "atakan", "atalay", "atif", "atil", "aycan", "aydan", "aykut", "ayla", "aylin", "aynur",
 "ayse", "aytac", "aziz", "azize", "azmi", "baran", "bekir", "belgin", "bennur", "beril",
@@ -116,12 +196,11 @@ inline void randomize()
 "yavuz", "yelda", "yeliz", "yesim", "yilmaz", "yunus", "yurdagul", "yurdakul", "yurdanur", "yusuf",
 "zahide", "zahit", "zarife", "zekai", "necati", "zeliha", "zerrin", "ziya", "zubeyde", };
 
-	return pnames[Rand(0, static_cast<int>(std::size(pnames) - 1))()];
+	return pnames[Irand(0, std::size(pnames) - 1)()];
 }
-
-////////////////////////////////////////////////////////////
-
-[[nodiscard]] inline std::string rfname()
+//--------------------------------------------------
+//--------------------------------------------------
+std::string rfname()
 {
 	static const char* const pfnames[] = {
 	"acar", "acgoze", "acuka", "ademoglu", "adiguzel", "agaoglu", "akarsu", "akcalar", "akgunes", "akkay",
@@ -157,12 +236,12 @@ inline void randomize()
 	"zaimoglu", "zalim", "zengin", "zebani"
 	};
 
-	return pfnames[Rand(0, static_cast<int>(std::size(pfnames)) - 1)()];
+	return pfnames[Irand(0, std::size(pfnames) - 1)()];
+
 }
-
-////////////////////////////////////////////////////////////
-
-[[nodiscard]] inline std::string rtown()
+//--------------------------------------------------
+//--------------------------------------------------
+std::string rtown()
 {
 	static const char* const ptowns[] = {
 "izmir", "afyonkarahisar", "kilis", "bolu", "yalova", "giresun", "tunceli", "manisa", "cankiri", "canakkale",
@@ -174,99 +253,96 @@ inline void randomize()
 "zonguldak", "corum", "batman", "adana", "usak", "denizli", "edirne", "karaman", "ordu", "diyarbakir",
 "siirt", "kutahya", "bitlis", "bartin", "nevsehir", "rize", "kastamonu", "duzce", "erzurum", "gumushane",
 "hatay", };
-	return ptowns[Rand(0, static_cast<int>(std::size(ptowns)) - 1)()];
+	return ptowns[Irand(0, std::size(ptowns) - 1)()];
 }
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------
+//--------------------------------------------------
 
-inline std::ostream& dline(std::ostream& os)
+bool isprime(int val)
+{
+	if (val < 2)
+		return false;
+
+	if (val % 2 == 0)
+		return val == 2;
+
+	if (val % 3 == 0)
+		return val == 3;
+
+	if (val % 5 == 0)
+		return val == 5;
+
+	for (int k = 7; k * k <= val; k += 2)
+		if (val % k == 0)
+			return false;
+
+	return true;
+}
+//--------------------------------------------------
+//--------------------------------------------------
+std::ostream& dline(std::ostream& os)
 {
 	return os << "\n-----------------------------------------------------------------------------\n";
 }
+//--------------------------------------------------
+//--------------------------------------------------
 
-////////////////////////////////////////////////////////////
+std::string rperson()
+{
+	std::ostringstream oss;
+	oss << std::left;
 
-class de {
-public:
-	de(long long x) : mx{ x } {}
-	friend std::ostream& operator<<(std::ostream& os, de x)
-	{
-		auto s = std::to_string(x.mx);
-		if (s[0] == '-') {
-			os << "-";
-			s.erase(0, 1);
-		}
+	oss << std::setw(8) << Irand{ 0, 999999 }() <<
+		std::setw(16) << rname() <<
+		std::setw(20) << rfname() << rtown();
 
-		auto len = s.length();
-		for (size_t i{}; i < len; ++i) {
-			os << s[i];
-			auto n = len - 1 - i;
-			if (n && (len - 1 - i) % 3 == 0)
-				os << '.';
-		}
-		return os;
+	return oss.str();
+}
+
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+
+void my_terminate()
+{
+	std::cout << "std::terminate cagrildi....\n";
+	std::cout << "myterminate cagrildi....\n";
+	std::cout << "std::abort() cagrildi\n";
+	std::abort();
+}
+
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
+
+std::vector<std::string> get_dictionary(const std::string& fname)
+{
+	using namespace std;
+
+	ifstream ifs{ fname };
+	if (!ifs) {
+		cerr << "dosya acilamadi\n";
+		exit(EXIT_FAILURE);
 	}
-private:
-	long long mx;
-};
-
-////////////////////////////////////////////////////////////
-
-template<typename T, typename U>
-std::ostream& operator<<(std::ostream& os, const std::pair<T, U>& p)
-{
-	return os << "[" << p.first << ", " << p.second << "]";
+	return { istream_iterator<string>{ifs}, {} };
 }
 
-////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------
 
-template<typename C, typename F>
-void rfill(C& c, size_t n, F frand)
+
+std::string get_str_from_file(const std::string& fname)
 {
-	while (c.size() < n)
-		c.insert(c.end(), frand());
-}
+	using namespace std;
 
-////////////////////////////////////////////////////////////
-
-template<typename T, typename F>
-void rfill(std::forward_list<T>& c, size_t n, F frand)
-{
-	while (n--)
-		c.insert_after(c.before_begin(), frand());
-}
-
-////////////////////////////////////////////////////////////
-
-template<typename C>
-void print(const C& c, std::ostream& os, const char* p = " ")
-{
-	for (const auto& elem : c)
-		os << elem << p;
-	os << dline;
-}
-
-////////////////////////////////////////////////////////////
-
-template<typename InIter>
-void print(InIter beg, InIter end, std::ostream& os, const char* p = " ")
-{
-	while (beg != end) {
-		os << *beg++ << p;
+	ifstream ifs{ fname };
+	if (!ifs) {
+		cerr << "dosya acilamadi\n";
+		exit(EXIT_FAILURE);
 	}
-	os << dline;
+	ostringstream oss;
+	oss << ifs.rdbuf();
+
+	return oss.str();
 }
 
-////////////////////////////////////////////////////////////
-
-[[nodiscard]] inline std::string random_word()
-{
-	std::string s(Rand{ 3, 15 }(), '\0');
-	static Rand crand{ 0, 25 };
-
-	std::generate(s.begin(), s.end(), [] {return crand() + 'a'; });
-	return s;
-}
-
-
-#endif  //NUTILITY_H
+#endif
